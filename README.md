@@ -352,7 +352,7 @@ make dev-frontend   # Start frontend (new terminal)
 - ✅ No need to rebuild Docker images
 - ✅ Support IDE breakpoint debugging
 
-**Detailed Documentation:** [Development Environment Quick Start](./docs/开发指南.md)
+**Detailed Documentation:** [Development Environment Quick Start](./docs/DevelopmentGuide.md)
 
 ### 📁 Directory Structure
 

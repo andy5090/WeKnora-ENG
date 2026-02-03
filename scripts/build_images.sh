@@ -1,43 +1,43 @@
 #!/bin/bash
-# 该脚本用于从源码构建WeKnora的所有Docker镜像
+# This script is used to build all WeKnora Docker images from source
 
-# 设置颜色
+# Set colors
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
 BLUE='\033[0;34m'
-NC='\033[0m' # 无颜色
+NC='\033[0m' # No color
 
-# 获取项目根目录（脚本所在目录的上一级）
+# Get project root directory (parent of script directory)
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." && pwd )"
 
-# 版本信息
+# Version information
 VERSION="1.0.0"
 SCRIPT_NAME=$(basename "$0")
 
-# 显示帮助信息
+# Show help information
 show_help() {
-    echo -e "${GREEN}WeKnora 镜像构建脚本 v${VERSION}${NC}"
-    echo -e "${GREEN}用法:${NC} $0 [选项]"
-    echo "选项:"
-    echo "  -h, --help     显示帮助信息"
-    echo "  -a, --all      构建所有镜像（默认）"
-    echo "  -p, --app      仅构建应用镜像"
-    echo "  -d, --docreader 仅构建文档读取器镜像"
-    echo "  -f, --frontend 仅构建前端镜像"
-    echo "  -c, --clean    清理所有本地镜像"
-    echo "  -v, --version  显示版本信息"
+    echo -e "${GREEN}WeKnora Image Build Script v${VERSION}${NC}"
+    echo -e "${GREEN}Usage:${NC} $0 [options]"
+    echo "Options:"
+    echo "  -h, --help     Show help information"
+    echo "  -a, --all      Build all images (default)"
+    echo "  -p, --app      Build app image only"
+    echo "  -d, --docreader Build docreader image only"
+    echo "  -f, --frontend Build frontend image only"
+    echo "  -c, --clean    Clean all local images"
+    echo "  -v, --version  Show version information"
     exit 0
 }
 
-# 显示版本信息
+# Show version information
 show_version() {
-    echo -e "${GREEN}WeKnora 镜像构建脚本 v${VERSION}${NC}"
+    echo -e "${GREEN}WeKnora Image Build Script v${VERSION}${NC}"
     exit 0
 }
 
-# 日志函数
+# Log functions
 log_info() {
     echo -e "${BLUE}[INFO]${NC} $1"
 }
@@ -54,28 +54,28 @@ log_success() {
     echo -e "${GREEN}[SUCCESS]${NC} $1"
 }
 
-# 检查Docker是否已安装
+# Check if Docker is installed
 check_docker() {
-    log_info "检查Docker环境..."
+    log_info "Checking Docker environment..."
     
     if ! command -v docker &> /dev/null; then
-        log_error "未安装Docker，请先安装Docker"
+        log_error "Docker is not installed, please install Docker first"
         return 1
     fi
     
-    # 检查Docker服务运行状态
+    # Check Docker service status
     if ! docker info &> /dev/null; then
-        log_error "Docker服务未运行，请启动Docker服务"
+        log_error "Docker service is not running, please start Docker service"
         return 1
     fi
     
-    log_success "Docker环境检查通过"
+    log_success "Docker environment check passed"
     return 0
 }
 
-# 检测平台
+# Detect platform
 check_platform() {
-    log_info "检测系统平台信息..."
+    log_info "Detecting system platform information..."
     if [ "$(uname -m)" = "x86_64" ]; then
         export PLATFORM="linux/amd64"
         export TARGETARCH="amd64"
@@ -83,53 +83,53 @@ check_platform() {
         export PLATFORM="linux/arm64"
         export TARGETARCH="arm64"
     else
-        log_warning "未识别的平台类型：$(uname -m)，将使用默认平台 linux/amd64"
+        log_warning "Unrecognized platform type: $(uname -m), will use default platform linux/amd64"
         export PLATFORM="linux/amd64"
         export TARGETARCH="amd64"
     fi
-    log_info "当前平台：$PLATFORM"
-    log_info "当前架构：$TARGETARCH"
+    log_info "Current platform: $PLATFORM"
+    log_info "Current architecture: $TARGETARCH"
 }
 
-# 获取版本信息
+# Get version information
 get_version_info() {
-    # 从VERSION文件获取版本号
+    # Get version number from VERSION file
     if [ -f "VERSION" ]; then
         VERSION=$(cat VERSION | tr -d '\n\r')
     else
         VERSION="unknown"
     fi
     
-    # 获取commit ID
+    # Get commit ID
     if command -v git >/dev/null 2>&1; then
         COMMIT_ID=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
     else
         COMMIT_ID="unknown"
     fi
     
-    # 获取构建时间
+    # Get build time
     BUILD_TIME=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
     
-    # 获取Go版本
+    # Get Go version
     if command -v go >/dev/null 2>&1; then
         GO_VERSION=$(go version 2>/dev/null || echo "unknown")
     else
         GO_VERSION="unknown"
     fi
     
-    log_info "版本信息: $VERSION"
+    log_info "Version info: $VERSION"
     log_info "Commit ID: $COMMIT_ID"
-    log_info "构建时间: $BUILD_TIME"
-    log_info "Go版本: $GO_VERSION"
+    log_info "Build time: $BUILD_TIME"
+    log_info "Go version: $GO_VERSION"
 }
 
-# 构建应用镜像
+# Build app image
 build_app_image() {
-    log_info "构建应用镜像 (weknora-app)..."
+    log_info "Building app image (weknora-app)..."
     
     cd "$PROJECT_ROOT"
     
-    # 获取版本信息
+    # Get version information
     get_version_info
     
     docker build \
@@ -146,17 +146,17 @@ build_app_image() {
         .
     
     if [ $? -eq 0 ]; then
-        log_success "应用镜像构建成功"
+        log_success "App image build successful"
         return 0
     else
-        log_error "应用镜像构建失败"
+        log_error "App image build failed"
         return 1
     fi
 }
 
-# 构建文档读取器镜像
+# Build docreader image
 build_docreader_image() {
-    log_info "构建文档读取器镜像 (weknora-docreader)..."
+    log_info "Building docreader image (weknora-docreader)..."
     
     cd "$PROJECT_ROOT"
     
@@ -169,17 +169,17 @@ build_docreader_image() {
         .
     
     if [ $? -eq 0 ]; then
-        log_success "文档读取器镜像构建成功"
+        log_success "Docreader image build successful"
         return 0
     else
-        log_error "文档读取器镜像构建失败"
+        log_error "Docreader image build failed"
         return 1
     fi
 }
 
-# 构建前端镜像
+# Build frontend image
 build_frontend_image() {
-    log_info "构建前端镜像 (weknora-ui)..."
+    log_info "Building frontend image (weknora-ui)..."
     
     cd "$PROJECT_ROOT"
     
@@ -190,100 +190,100 @@ build_frontend_image() {
         frontend/
     
     if [ $? -eq 0 ]; then
-        log_success "前端镜像构建成功"
+        log_success "Frontend image build successful"
         return 0
     else
-        log_error "前端镜像构建失败"
+        log_error "Frontend image build failed"
         return 1
     fi
 }
 
-# 构建所有镜像
+# Build all images
 build_all_images() {
-    log_info "开始构建所有镜像..."
+    log_info "Starting to build all images..."
     
     local app_result=0
     local docreader_result=0
     local frontend_result=0
     
-    # 构建应用镜像
+    # Build app image
     build_app_image
     app_result=$?
     
-    # 构建文档读取器镜像
+    # Build docreader image
     build_docreader_image
     docreader_result=$?
     
-    # 构建前端镜像
+    # Build frontend image
     build_frontend_image
     frontend_result=$?
     
-    # 显示构建结果
+    # Show build results
     echo ""
-    log_info "=== 构建结果 ==="
+    log_info "=== Build Results ==="
     if [ $app_result -eq 0 ]; then
-        log_success "✓ 应用镜像构建成功"
+        log_success "✓ App image build successful"
     else
-        log_error "✗ 应用镜像构建失败"
+        log_error "✗ App image build failed"
     fi
     
     if [ $docreader_result -eq 0 ]; then
-        log_success "✓ 文档读取器镜像构建成功"
+        log_success "✓ Docreader image build successful"
     else
-        log_error "✗ 文档读取器镜像构建失败"
+        log_error "✗ Docreader image build failed"
     fi
     
     if [ $frontend_result -eq 0 ]; then
-        log_success "✓ 前端镜像构建成功"
+        log_success "✓ Frontend image build successful"
     else
-        log_error "✗ 前端镜像构建失败"
+        log_error "✗ Frontend image build failed"
     fi
     
     if [ $app_result -eq 0 ] && [ $docreader_result -eq 0 ] && [ $frontend_result -eq 0 ]; then
-        log_success "所有镜像构建完成！"
+        log_success "All images build completed!"
         return 0
     else
-        log_error "部分镜像构建失败"
+        log_error "Some images build failed"
         return 1
     fi
 }
 
-# 清理本地镜像
+# Clean local images
 clean_images() {
-    log_info "清理本地WeKnora镜像..."
+    log_info "Cleaning local WeKnora images..."
     
-    # 停止相关容器
-    log_info "停止相关容器..."
+    # Stop related containers
+    log_info "Stopping related containers..."
     docker stop $(docker ps -q --filter "ancestor=wechatopenai/weknora-app:latest" 2>/dev/null) 2>/dev/null || true
     docker stop $(docker ps -q --filter "ancestor=wechatopenai/weknora-docreader:latest" 2>/dev/null) 2>/dev/null || true
     docker stop $(docker ps -q --filter "ancestor=wechatopenai/weknora-ui:latest" 2>/dev/null) 2>/dev/null || true
     
-    # 删除相关容器
-    log_info "删除相关容器..."
+    # Remove related containers
+    log_info "Removing related containers..."
     docker rm $(docker ps -aq --filter "ancestor=wechatopenai/weknora-app:latest" 2>/dev/null) 2>/dev/null || true
     docker rm $(docker ps -aq --filter "ancestor=wechatopenai/weknora-docreader:latest" 2>/dev/null) 2>/dev/null || true
     docker rm $(docker ps -aq --filter "ancestor=wechatopenai/weknora-ui:latest" 2>/dev/null) 2>/dev/null || true
     
-    # 删除镜像
-    log_info "删除本地镜像..."
+    # Remove images
+    log_info "Removing local images..."
     docker rmi wechatopenai/weknora-app:latest 2>/dev/null || true
     docker rmi wechatopenai/weknora-docreader:latest 2>/dev/null || true
     docker rmi wechatopenai/weknora-ui:latest 2>/dev/null || true
     
     docker image prune -f
     
-    log_success "镜像清理完成"
+    log_success "Image cleanup completed"
     return 0
 }
 
-# 解析命令行参数
+# Parse command line arguments
 BUILD_ALL=false
 BUILD_APP=false
 BUILD_DOCREADER=false
 BUILD_FRONTEND=false
 CLEAN_IMAGES=false
 
-# 没有参数时默认构建所有镜像
+# Build all images by default when no arguments provided
 if [ $# -eq 0 ]; then
     BUILD_ALL=true
 fi
@@ -304,29 +304,29 @@ while [ "$1" != "" ]; do
                             ;;
         -v | --version )    show_version
                             ;;
-        * )                 log_error "未知选项: $1"
+        * )                 log_error "Unknown option: $1"
                             show_help
                             ;;
     esac
     shift
 done
 
-# 检查Docker环境
+# Check Docker environment
 check_docker
 if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# 检测平台
+# Detect platform
 check_platform
 
-# 执行清理操作
+# Execute clean operation
 if [ "$CLEAN_IMAGES" = true ]; then
     clean_images
     exit $?
 fi
 
-# 执行构建操作
+# Execute build operation
 if [ "$BUILD_ALL" = true ]; then
     build_all_images
     exit $?
