@@ -1,114 +1,113 @@
-# 常见问题
+# Frequently Asked Questions
 
-## 1. 如何查看日志？
+## 1. How to view logs?
 ```bash
 docker compose logs -f app docreader postgres
 ```
 
-## 2. 如何启动和停止服务？
+## 2. How to start and stop services?
 ```bash
-# 启动服务
+# Start services
 ./scripts/start_all.sh
 
-# 停止服务
+# Stop services
 ./scripts/start_all.sh --stop
 
-# 清空数据库
+# Clear database
 ./scripts/start_all.sh --stop && make clean-db
 ```
 
-## 3. 服务启动后无法正常上传文档？
+## 3. Unable to upload documents after service startup?
 
-通常是Embedding模型和对话模型没有正确被设置导致。按照以下步骤进行排查
+Usually caused by Embedding model and conversation model not being set correctly. Follow these steps to troubleshoot:
 
-1. 查看`.env`配置中的模型信息是否配置完整，其中如果使用ollama访问本地模型，需要确保本地ollama服务正常运行，同时在`.env`中的如下环境变量需要正确设置:
+1. Check if model information in `.env` configuration is complete. If using ollama to access local models, ensure the local ollama service is running normally, and the following environment variables in `.env` need to be set correctly:
 ```bash
 # LLM Model
 INIT_LLM_MODEL_NAME=your_llm_model
 # Embedding Model
 INIT_EMBEDDING_MODEL_NAME=your_embedding_model
-# Embedding模型向量维度
+# Embedding model vector dimension
 INIT_EMBEDDING_MODEL_DIMENSION=your_embedding_model_dimension
-# Embedding模型的ID，通常是一个字符串
+# Embedding model ID, usually a string
 INIT_EMBEDDING_MODEL_ID=your_embedding_model_id
 ```
 
-如果是通过remote api访问模型，则需要额外提供对应的`BASE_URL`和`API_KEY`:
+If accessing models through remote API, you need to additionally provide the corresponding `BASE_URL` and `API_KEY`:
 ```bash
-# LLM模型的访问地址
+# LLM model access address
 INIT_LLM_MODEL_BASE_URL=your_llm_model_base_url
-# LLM模型的API密钥，如果需要身份验证，可以设置
+# LLM model API key, set if authentication is required
 INIT_LLM_MODEL_API_KEY=your_llm_model_api_key
-# Embedding模型的访问地址
+# Embedding model access address
 INIT_EMBEDDING_MODEL_BASE_URL=your_embedding_model_base_url
-# Embedding模型的API密钥，如果需要身份验证，可以设置
+# Embedding model API key, set if authentication is required
 INIT_EMBEDDING_MODEL_API_KEY=your_embedding_model_api_key
 ```
 
-当需要重排序功能时，需要额外配置Rerank模型，具体配置如下：
+When reranking functionality is needed, you need to additionally configure the Rerank model. The specific configuration is as follows:
 ```bash
-# 使用的Rerank模型名称
+# Rerank model name to use
 INIT_RERANK_MODEL_NAME=your_rerank_model_name
-# Rerank模型的访问地址
+# Rerank model access address
 INIT_RERANK_MODEL_BASE_URL=your_rerank_model_base_url
-# Rerank模型的API密钥，如果需要身份验证，可以设置
+# Rerank model API key, set if authentication is required
 INIT_RERANK_MODEL_API_KEY=your_rerank_model_api_key
 ```
 
-2. 查看主服务日志，是否有`ERROR`日志输出
+2. Check the main service logs for any `ERROR` log output
 
-## 4. 没有图片或者显示无效的图片链接？
+## 4. No images or invalid image links displayed?
 
-当使用多模态功能时，如果遇到图片无法显示或显示无效链接的问题，请按照以下步骤排查：
+When using multimodal functionality, if you encounter issues with images not displaying or showing invalid links, please troubleshoot according to the following steps:
 
-### 1. 确认多模态功能已正确配置
+### 1. Confirm multimodal functionality is correctly configured
 
-在知识库设置中开启**高级设置 - 多模态功能**，并在界面中配置相应的多模态模型。
+Enable **Advanced Settings - Multimodal Functionality** in knowledge base settings, and configure the corresponding multimodal model in the interface.
 
-### 2. 确认 MinIO 服务已启动
+### 2. Confirm MinIO service is started
 
-如果多模态功能配置使用的是 MinIO 存储，需要确保 MinIO 镜像已正确启动：
-
+If the multimodal functionality configuration uses MinIO storage, ensure the MinIO image is started correctly:
 ```bash
-# 启动 MinIO 服务
+# Start MinIO service
 docker-compose --profile minio up -d
 
-# 或者启动完整服务（包括 MinIO、Jaeger、Neo4j、Qdrant）
+# Or start full services (including MinIO, Jaeger, Neo4j, Qdrant)
 docker-compose --profile full up -d
 ```
 
-### 3. 检查 MinIO Bucket 权限
+### 3. Check MinIO Bucket permissions
 
-确保 MinIO 对应的 bucket 具有正确的读写权限：
+Ensure the MinIO bucket has correct read/write permissions:
 
-1. 访问 MinIO 控制台：`http://localhost:9001`（默认端口）
-2. 使用 `.env` 中配置的 `MINIO_ACCESS_KEY_ID` 和 `MINIO_SECRET_ACCESS_KEY` 登录
-3. 进入对应的 bucket，检查并设置访问策略为**公开读取**或**公开读写**
+1. Access MinIO console: `http://localhost:9001` (default port)
+2. Login using `MINIO_ACCESS_KEY_ID` and `MINIO_SECRET_ACCESS_KEY` configured in `.env`
+3. Enter the corresponding bucket, check and set access policy to **Public Read** or **Public Read/Write**
 
-**重要提示**：
-- Bucket 名称不要包含特殊字符（包括中文），建议使用小写字母、数字和连字符
-- 如果无法修改现有 bucket 的权限，可以在配置中填入一个不存在的 bucket 名称，本项目会自动创建对应的 bucket 并设置好正确的权限
+**Important Notes**:
+- Bucket names should not contain special characters (including Chinese), it is recommended to use lowercase letters, numbers, and hyphens
+- If you cannot modify existing bucket permissions, you can enter a non-existent bucket name in the configuration, and this project will automatically create the corresponding bucket and set correct permissions
 
-### 4. 配置 MINIO_PUBLIC_ENDPOINT
+### 4. Configure MINIO_PUBLIC_ENDPOINT
 
-在 `docker-compose.yml` 文件中，`MINIO_PUBLIC_ENDPOINT` 变量默认配置为 `http://localhost:9000`。
+In the `docker-compose.yml` file, the `MINIO_PUBLIC_ENDPOINT` variable is configured by default as `http://localhost:9000`.
 
-**重要提示**：如果你需要从其他设备或容器访问图片，`localhost` 可能无法正常工作，需要将其替换为本机的实际 IP 地址：
+**Important Note**: If you need to access images from other devices or containers, `localhost` may not work properly, and you need to replace it with the actual IP address of your machine:
 
 
-## 5. 平台兼容性说明
+## 5. Platform Compatibility Notes
 
-**重要提示**：`OCR_BACKEND=paddle` 模式在部分平台上可能无法正常运行。如果遇到 PaddleOCR 启动失败的问题，请选择以下解决方案
+**Important Note**: `OCR_BACKEND=paddle` mode may not run properly on some platforms. If you encounter PaddleOCR startup failure issues, please choose one of the following solutions:
 
-### 方案一：关闭 OCR 识别
+### Solution 1: Disable OCR recognition
 
-在 `docker-compose.yml` 文件的 `docreader` 服务中删除 `OCR_BACKEND` 配置，然后重启 docreader 服务
+Delete the `OCR_BACKEND` configuration in the `docreader` service in the `docker-compose.yml` file, then restart the docreader service
 
-**注意**：设置为 `no_ocr` 后，文档解析将不会使用 OCR 功能，这可能会影响图片和扫描文档的文字识别效果。
+**Note**: After setting to `no_ocr`, document parsing will not use OCR functionality, which may affect text recognition for images and scanned documents.
 
-### 方案二：使用外部 OCR 模型（推荐）
+### Solution 2: Use external OCR model (Recommended)
 
-如果需要 OCR 功能，可以使用外部的视觉语言模型（VLM）来替代 PaddleOCR。在 `docker-compose.yml` 文件的 `docreader` 服务中配置：
+If OCR functionality is needed, you can use an external vision language model (VLM) to replace PaddleOCR. Configure in the `docreader` service in the `docker-compose.yml` file:
 
 ```yaml
 environment:
@@ -118,30 +117,30 @@ environment:
   - OCR_MODEL=${OCR_MODEL:-}
 ```
 
-然后重启 docreader 服务
+Then restart the docreader service
 
-**优势**：使用外部 OCR 模型可以获得更好的识别效果，且不受平台限制。
+**Advantages**: Using external OCR models can achieve better recognition results and is not limited by platform.
 
-## 6. 如何使用数据分析功能？
+## 6. How to use data analysis functionality?
 
-在使用数据分析功能前，请确保智能体已配置相关工具：
+Before using data analysis functionality, ensure the agent has configured related tools:
 
-1. **智能推理**：需在工具配置中勾选以下两个工具：
-   - 查看数据元信息
-   - 数据分析
+1. **Smart Reasoning**: Need to check the following two tools in tool configuration:
+   - View Data Schema
+   - Data Analysis
 
-2. **快速问答智能体**：无需手动选择工具，即可直接进行简单的数据查询操作。
+2. **Quick Answer Agent**: No need to manually select tools, can directly perform simple data query operations.
 
-### 注意事项与使用规范
+### Notes and Usage Guidelines
 
-1. **支持的文件格式**
-   - 目前仅支持 **CSV** (`.csv`) 和 **Excel** (`.xlsx`, `.xls`) 格式的文件。
-   - 对于复杂的 Excel 文件，如果读取失败，建议将其转换为标准的 CSV 格式后重新上传。
+1. **Supported File Formats**
+   - Currently only supports **CSV** (`.csv`) and **Excel** (`.xlsx`, `.xls`) format files.
+   - For complex Excel files, if reading fails, it is recommended to convert them to standard CSV format and re-upload.
 
-2. **查询限制**
-   - 仅支持 **只读查询**，包括 `SELECT`, `SHOW`, `DESCRIBE`, `EXPLAIN`, `PRAGMA` 等语句。
-   - 禁止执行任何修改数据的操作，如 `INSERT`, `UPDATE`, `DELETE`, `CREATE`, `DROP` 等。
+2. **Query Restrictions**
+   - Only supports **read-only queries**, including `SELECT`, `SHOW`, `DESCRIBE`, `EXPLAIN`, `PRAGMA` statements.
+   - Prohibited from executing any data modification operations, such as `INSERT`, `UPDATE`, `DELETE`, `CREATE`, `DROP`, etc.
 
 
 ## P.S.
-如果以上方式未解决问题，请在issue中描述您的问题，并提供必要的日志信息辅助我们进行问题排查
+If the above methods do not solve the problem, please describe your issue in an issue and provide necessary log information to help us troubleshoot

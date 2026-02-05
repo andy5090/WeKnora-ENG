@@ -1,6 +1,6 @@
 <template>
   <div class="agent-list-container">
-    <!-- 头部 -->
+    <!-- Header -->
     <div class="header">
       <div class="header-title">
         <h2>{{ $t('agent.title') }}</h2>
@@ -9,7 +9,7 @@
     </div>
     <div class="header-divider"></div>
 
-    <!-- 卡片网格 -->
+    <!-- Card grid -->
     <div v-if="agents.length > 0" class="agent-card-wrap">
       <div 
         v-for="agent in agents" 
@@ -22,7 +22,7 @@
         }"
         @click="handleCardClick(agent)"
       >
-        <!-- 装饰星星 -->
+        <!-- Decorative stars -->
         <div class="card-decoration">
           <svg class="star-icon" width="24" height="24" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M10 3L10.8 6.2C10.9 6.7 11.3 7.1 11.8 7.2L15 8L11.8 8.8C11.3 8.9 10.9 9.3 10.8 9.8L10 13L9.2 9.8C9.1 9.3 8.7 8.9 8.2 8.8L5 8L8.2 7.2C8.7 7.1 9.1 6.7 9.2 6.2L10 3Z" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round" fill="currentColor" fill-opacity="0.15"/>
@@ -32,14 +32,14 @@
           </svg>
         </div>
         
-        <!-- 卡片头部 -->
+        <!-- Card header -->
         <div class="card-header">
           <div class="card-header-left">
-            <!-- 内置智能体使用简洁图标 -->
+            <!-- Built-in agents use simple icon -->
             <div v-if="agent.is_builtin" class="builtin-avatar" :class="agent.config?.agent_mode === 'smart-reasoning' ? 'agent' : 'normal'">
               <t-icon :name="agent.config?.agent_mode === 'smart-reasoning' ? 'control-platform' : 'chat'" size="18px" />
             </div>
-            <!-- 自定义智能体使用 AgentAvatar -->
+            <!-- Custom agents use AgentAvatar -->
             <AgentAvatar v-else :name="agent.name" size="medium" />
             <span class="card-title" :title="agent.name">{{ agent.name }}</span>
           </div>
@@ -77,14 +77,14 @@
           </t-popup>
         </div>
 
-        <!-- 卡片内容 -->
+        <!-- Card content -->
         <div class="card-content">
           <div class="card-description">
             {{ agent.description || $t('agent.noDescription') }}
           </div>
         </div>
 
-        <!-- 卡片底部 -->
+        <!-- Card bottom -->
         <div class="card-bottom">
           <div class="bottom-left">
             <div class="feature-badges">
@@ -129,14 +129,14 @@
       </div>
     </div>
 
-    <!-- 空状态 -->
+    <!-- Empty state -->
     <div v-else-if="!loading" class="empty-state">
       <img class="empty-img" src="@/assets/img/upload.svg" alt="">
       <span class="empty-txt">{{ $t('agent.empty.title') }}</span>
       <span class="empty-desc">{{ $t('agent.empty.description') }}</span>
     </div>
 
-    <!-- 删除确认对话框 -->
+    <!-- Delete confirmation dialog -->
     <t-dialog 
       v-model:visible="deleteVisible" 
       dialogClassName="del-agent-dialog" 
@@ -159,7 +159,7 @@
       </div>
     </t-dialog>
 
-    <!-- 智能体编辑器弹窗 -->
+    <!-- Agent editor modal -->
     <AgentEditorModal 
       :visible="editorVisible"
       :mode="editorMode"
@@ -202,18 +202,18 @@ const fetchList = () => {
   loading.value = true
   return listAgents().then((res: any) => {
     const data = res.data || []
-    // 显示所有智能体（包括内置智能体）
+    // Display all agents (including built-in agents)
     agents.value = data.map((agent: CustomAgent) => ({
       ...agent,
       showMore: false
     }))
     
-    // 检查 URL 中是否有 edit 参数，如果有则打开对应智能体的编辑模态框
+    // Check if URL has edit parameter, if yes then open corresponding agent's edit modal
     checkAndOpenEditModal()
   }).finally(() => loading.value = false)
 }
 
-// 检查 URL 参数并打开编辑模态框
+// Check URL parameters and open edit modal
 const checkAndOpenEditModal = () => {
   const editId = route.query.edit as string
   const section = route.query.section as string
@@ -225,12 +225,12 @@ const checkAndOpenEditModal = () => {
       editorInitialSection.value = section || 'basic'
       editorVisible.value = true
     }
-    // 清除 URL 中的参数
+    // Clear parameters from URL
     router.replace({ path: route.path, query: {} })
   }
 }
 
-// 监听菜单创建智能体事件
+// Listen to menu create agent event
 const handleOpenAgentEditor = (event: CustomEvent) => {
   if (event.detail?.mode === 'create') {
     openCreateModal()
@@ -253,11 +253,11 @@ const onVisibleChange = (visible: boolean, agent: AgentWithUI) => {
 }
 
 const handleCardClick = (agent: AgentWithUI) => {
-  // 如果弹窗正在显示，不触发编辑
+  // If popup is showing, don't trigger edit
   if (agent.showMore) {
     return
   }
-  // 点击卡片编辑（包括内置智能体）
+  // Click card to edit (including built-in agents)
   handleEdit(agent)
 }
 
@@ -316,7 +316,7 @@ const formatDate = (dateStr: string) => {
   return formatStringDate(new Date(dateStr))
 }
 
-// 暴露创建方法供外部调用
+// Expose create method for external calls
 const openCreateModal = () => {
   editingAgent.value = null
   editorMode.value = 'create'
@@ -401,7 +401,7 @@ defineExpose({
     box-shadow: 0 4px 12px rgba(7, 192, 95, 0.12);
   }
 
-  // 普通模式样式
+  // Normal mode styles
   &.agent-mode-normal {
     background: linear-gradient(135deg, #ffffff 0%, #f8fcfa 100%);
     border-color: #e8f5ed;
@@ -420,7 +420,7 @@ defineExpose({
     }
   }
 
-  // Agent 模式样式
+  // Agent mode styles
   &.agent-mode-agent {
     background: linear-gradient(135deg, #ffffff 0%, #f8f5ff 100%);
     border-color: #ede8ff;
@@ -440,7 +440,7 @@ defineExpose({
     }
   }
 
-  // 确保内容在装饰之上
+  // Ensure content is above decoration
   .card-header,
   .card-content,
   .card-bottom {
@@ -726,7 +726,7 @@ defineExpose({
   }
 }
 
-// 响应式布局
+// Responsive layout
 @media (min-width: 900px) {
   .agent-card-wrap {
     grid-template-columns: repeat(2, 1fr);
@@ -745,7 +745,7 @@ defineExpose({
   }
 }
 
-// 删除确认对话框样式
+// Delete confirmation dialog styles
 :deep(.del-agent-dialog) {
   padding: 0px !important;
   border-radius: 6px !important;
@@ -831,7 +831,7 @@ defineExpose({
 </style>
 
 <style lang="less">
-// 更多操作弹窗样式
+// More actions popup styles
 .card-more-popup {
   z-index: 99 !important;
 

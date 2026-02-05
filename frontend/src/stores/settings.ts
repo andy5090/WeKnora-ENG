@@ -1,23 +1,23 @@
 import { defineStore } from "pinia";
 import { BUILTIN_QUICK_ANSWER_ID, BUILTIN_SMART_REASONING_ID } from "@/api/agent";
 
-// 定义设置接口
+// Define settings interface
 interface Settings {
   endpoint: string;
   apiKey: string;
   knowledgeBaseId: string;
   isAgentEnabled: boolean;
   agentConfig: AgentConfig;
-  selectedKnowledgeBases: string[];  // 当前选中的知识库ID列表
-  selectedFiles: string[]; // 当前选中的文件ID列表
-  modelConfig: ModelConfig;  // 模型配置
-  ollamaConfig: OllamaConfig;  // Ollama配置
-  webSearchEnabled: boolean;  // 网络搜索是否启用
+  selectedKnowledgeBases: string[];  // Currently selected knowledge base ID list
+  selectedFiles: string[]; // Currently selected file ID list
+  modelConfig: ModelConfig;  // Model configuration
+  ollamaConfig: OllamaConfig;  // Ollama configuration
+  webSearchEnabled: boolean;  // Whether web search is enabled
   conversationModels: ConversationModels;
-  selectedAgentId: string;  // 当前选中的智能体ID
+  selectedAgentId: string;  // Currently selected agent ID
 }
 
-// Agent 配置接口
+// Agent configuration interface
 interface AgentConfig {
   maxIterations: number;
   temperature: number;
@@ -28,37 +28,37 @@ interface AgentConfig {
 interface ConversationModels {
   summaryModelId: string;
   rerankModelId: string;
-  selectedChatModelId: string;  // 用户当前选择的对话模型ID
+  selectedChatModelId: string;  // User's currently selected conversation model ID
 }
 
-// 单个模型项接口
+// Single model item interface
 interface ModelItem {
-  id: string;  // 唯一ID
-  name: string;  // 显示名称
-  source: 'local' | 'remote';  // 模型来源
-  modelName: string;  // 模型标识
-  baseUrl?: string;  // 远程API URL
-  apiKey?: string;  // 远程API Key
-  dimension?: number;  // Embedding专用：向量维度
-  interfaceType?: 'ollama' | 'openai';  // VLLM专用：接口类型
-  isDefault?: boolean;  // 是否为默认模型
+  id: string;  // Unique ID
+  name: string;  // Display name
+  source: 'local' | 'remote';  // Model source
+  modelName: string;  // Model identifier
+  baseUrl?: string;  // Remote API URL
+  apiKey?: string;  // Remote API Key
+  dimension?: number;  // Embedding specific: vector dimension
+  interfaceType?: 'ollama' | 'openai';  // VLLM specific: interface type
+  isDefault?: boolean;  // Whether it is the default model
 }
 
-// 模型配置接口 - 支持多模型
+// Model configuration interface - supports multiple models
 interface ModelConfig {
   chatModels: ModelItem[];
   embeddingModels: ModelItem[];
   rerankModels: ModelItem[];
-  vllmModels: ModelItem[];  // VLLM视觉模型
+  vllmModels: ModelItem[];  // VLLM vision models
 }
 
-// Ollama 配置接口
+// Ollama configuration interface
 interface OllamaConfig {
-  baseUrl: string;  // Ollama 服务地址
-  enabled: boolean;  // 是否启用
+  baseUrl: string;  // Ollama service address
+  enabled: boolean;  // Whether enabled
 }
 
-// 默认设置
+// Default settings
 const defaultSettings: Settings = {
   endpoint: import.meta.env.VITE_IS_DOCKER ? "" : "http://localhost:8080",
   apiKey: "",
@@ -67,11 +67,11 @@ const defaultSettings: Settings = {
   agentConfig: {
     maxIterations: 5,
     temperature: 0.7,
-    allowedTools: [],  // 默认为空，需要通过 API 从后端加载
+    allowedTools: [],  // Default empty, needs to be loaded from backend via API
     system_prompt: "",
   },
-  selectedKnowledgeBases: [],  // 默认为空数组
-  selectedFiles: [], // 默认为空数组
+  selectedKnowledgeBases: [],  // Default empty array
+  selectedFiles: [], // Default empty array
   modelConfig: {
     chatModels: [],
     embeddingModels: [],
@@ -82,27 +82,27 @@ const defaultSettings: Settings = {
     baseUrl: "http://localhost:11434",
     enabled: true
   },
-  webSearchEnabled: false,  // 默认关闭网络搜索
+  webSearchEnabled: false,  // Default web search disabled
   conversationModels: {
     summaryModelId: "",
     rerankModelId: "",
-    selectedChatModelId: "",  // 用户当前选择的对话模型ID
+    selectedChatModelId: "",  // User's currently selected conversation model ID
   },
-  selectedAgentId: BUILTIN_QUICK_ANSWER_ID,  // 默认选中快速问答模式
+  selectedAgentId: BUILTIN_QUICK_ANSWER_ID,  // Default select quick answer mode
 };
 
 export const useSettingsStore = defineStore("settings", {
   state: () => ({
-    // 从本地存储加载设置，如果没有则使用默认设置
+    // Load settings from local storage, use default settings if not available
     settings: JSON.parse(localStorage.getItem("WeKnora_settings") || JSON.stringify(defaultSettings)),
   }),
 
   getters: {
-    // Agent 是否启用
+    // Whether Agent is enabled
     isAgentEnabled: (state) => state.settings.isAgentEnabled || false,
     
-    // Agent 是否就绪（配置完整）
-    // 需要满足：1) 配置了允许的工具 2) 设置了对话模型 3) 设置了重排模型
+    // Whether Agent is ready (configuration complete)
+    // Need to satisfy: 1) Configured allowed tools 2) Set conversation model 3) Set rerank model
     isAgentReady: (state) => {
       const config = state.settings.agentConfig || defaultSettings.agentConfig
       const models = state.settings.conversationModels || defaultSettings.conversationModels
@@ -113,8 +113,8 @@ export const useSettingsStore = defineStore("settings", {
       )
     },
     
-    // 普通模式（快速回答）是否就绪
-    // 需要满足：1) 设置了对话模型 2) 设置了重排模型
+    // Whether normal mode (quick answer) is ready
+    // Need to satisfy: 1) Set conversation model 2) Set rerank model
     isNormalModeReady: (state) => {
       const models = state.settings.conversationModels || defaultSettings.conversationModels
       return Boolean(
@@ -123,56 +123,56 @@ export const useSettingsStore = defineStore("settings", {
       )
     },
     
-    // 获取 Agent 配置
+    // Get Agent configuration
     agentConfig: (state) => state.settings.agentConfig || defaultSettings.agentConfig,
 
     conversationModels: (state) => state.settings.conversationModels || defaultSettings.conversationModels,
     
-    // 获取模型配置
+    // Get model configuration
     modelConfig: (state) => state.settings.modelConfig || defaultSettings.modelConfig,
     
-    // 网络搜索是否启用
+    // Whether web search is enabled
     isWebSearchEnabled: (state) => state.settings.webSearchEnabled || false,
     
-    // 当前选中的智能体ID
+    // Currently selected agent ID
     selectedAgentId: (state) => state.settings.selectedAgentId || BUILTIN_QUICK_ANSWER_ID,
   },
 
   actions: {
-    // 保存设置
+    // Save settings
     saveSettings(settings: Settings) {
       this.settings = { ...settings };
-      // 保存到localStorage
+      // Save to localStorage
       localStorage.setItem("WeKnora_settings", JSON.stringify(this.settings));
     },
 
-    // 获取设置
+    // Get settings
     getSettings(): Settings {
       return this.settings;
     },
 
-    // 获取API端点
+    // Get API endpoint
     getEndpoint(): string {
       return this.settings.endpoint || defaultSettings.endpoint;
     },
 
-    // 获取API Key
+    // Get API Key
     getApiKey(): string {
       return this.settings.apiKey;
     },
 
-    // 获取知识库ID
+    // Get knowledge base ID
     getKnowledgeBaseId(): string {
       return this.settings.knowledgeBaseId;
     },
     
-    // 启用/禁用 Agent
+    // Enable/disable Agent
     toggleAgent(enabled: boolean) {
       this.settings.isAgentEnabled = enabled;
       localStorage.setItem("WeKnora_settings", JSON.stringify(this.settings));
     },
     
-    // 更新 Agent 配置
+    // Update Agent configuration
     updateAgentConfig(config: Partial<AgentConfig>) {
       this.settings.agentConfig = { ...this.settings.agentConfig, ...config };
       localStorage.setItem("WeKnora_settings", JSON.stringify(this.settings));
@@ -184,21 +184,21 @@ export const useSettingsStore = defineStore("settings", {
       localStorage.setItem("WeKnora_settings", JSON.stringify(this.settings));
     },
     
-    // 更新模型配置
+    // Update model configuration
     updateModelConfig(config: Partial<ModelConfig>) {
       this.settings.modelConfig = { ...this.settings.modelConfig, ...config };
       localStorage.setItem("WeKnora_settings", JSON.stringify(this.settings));
     },
     
-    // 添加模型
+    // Add model
     addModel(type: 'chat' | 'embedding' | 'rerank' | 'vllm', model: ModelItem) {
       const key = `${type}Models` as keyof ModelConfig;
       const models = [...this.settings.modelConfig[key]] as ModelItem[];
-      // 如果设为默认，取消其他模型的默认状态
+      // If set as default, cancel default status of other models
       if (model.isDefault) {
         models.forEach(m => m.isDefault = false);
       }
-      // 如果是第一个模型，自动设为默认
+      // If it's the first model, automatically set as default
       if (models.length === 0) {
         model.isDefault = true;
       }
@@ -207,13 +207,13 @@ export const useSettingsStore = defineStore("settings", {
       localStorage.setItem("WeKnora_settings", JSON.stringify(this.settings));
     },
     
-    // 更新模型
+    // Update model
     updateModel(type: 'chat' | 'embedding' | 'rerank' | 'vllm', modelId: string, updates: Partial<ModelItem>) {
       const key = `${type}Models` as keyof ModelConfig;
       const models = [...this.settings.modelConfig[key]] as ModelItem[];
       const index = models.findIndex(m => m.id === modelId);
       if (index !== -1) {
-        // 如果要设为默认，取消其他模型的默认状态
+        // If setting as default, cancel default status of other models
         if (updates.isDefault) {
           models.forEach(m => m.isDefault = false);
         }
@@ -223,13 +223,13 @@ export const useSettingsStore = defineStore("settings", {
       }
     },
     
-    // 删除模型
+    // Delete model
     deleteModel(type: 'chat' | 'embedding' | 'rerank' | 'vllm', modelId: string) {
       const key = `${type}Models` as keyof ModelConfig;
       let models = [...this.settings.modelConfig[key]] as ModelItem[];
       const deletedModel = models.find(m => m.id === modelId);
       models = models.filter(m => m.id !== modelId);
-      // 如果删除的是默认模型，设置第一个为默认
+      // If deleted model is default, set first one as default
       if (deletedModel?.isDefault && models.length > 0) {
         models[0].isDefault = true;
       }
@@ -237,7 +237,7 @@ export const useSettingsStore = defineStore("settings", {
       localStorage.setItem("WeKnora_settings", JSON.stringify(this.settings));
     },
     
-    // 设置默认模型
+    // Set default model
     setDefaultModel(type: 'chat' | 'embedding' | 'rerank' | 'vllm', modelId: string) {
       const key = `${type}Models` as keyof ModelConfig;
       const models = [...this.settings.modelConfig[key]] as ModelItem[];
@@ -246,19 +246,19 @@ export const useSettingsStore = defineStore("settings", {
       localStorage.setItem("WeKnora_settings", JSON.stringify(this.settings));
     },
     
-    // 更新 Ollama 配置
+    // Update Ollama configuration
     updateOllamaConfig(config: Partial<OllamaConfig>) {
       this.settings.ollamaConfig = { ...this.settings.ollamaConfig, ...config };
       localStorage.setItem("WeKnora_settings", JSON.stringify(this.settings));
     },
     
-    // 选择知识库（替换整个列表）
+    // Select knowledge bases (replace entire list)
     selectKnowledgeBases(kbIds: string[]) {
       this.settings.selectedKnowledgeBases = kbIds;
       localStorage.setItem("WeKnora_settings", JSON.stringify(this.settings));
     },
     
-    // 添加单个知识库
+    // Add single knowledge base
     addKnowledgeBase(kbId: string) {
       if (!this.settings.selectedKnowledgeBases.includes(kbId)) {
         this.settings.selectedKnowledgeBases.push(kbId);
@@ -266,25 +266,25 @@ export const useSettingsStore = defineStore("settings", {
       }
     },
     
-    // 移除单个知识库
+    // Remove single knowledge base
     removeKnowledgeBase(kbId: string) {
       this.settings.selectedKnowledgeBases = 
         this.settings.selectedKnowledgeBases.filter((id: string) => id !== kbId);
       localStorage.setItem("WeKnora_settings", JSON.stringify(this.settings));
     },
     
-    // 清空知识库选择
+    // Clear knowledge base selection
     clearKnowledgeBases() {
       this.settings.selectedKnowledgeBases = [];
       localStorage.setItem("WeKnora_settings", JSON.stringify(this.settings));
     },
     
-    // 获取选中的知识库列表
+    // Get selected knowledge base list
     getSelectedKnowledgeBases(): string[] {
       return this.settings.selectedKnowledgeBases || [];
     },
     
-    // 启用/禁用网络搜索
+    // Enable/disable web search
     toggleWebSearch(enabled: boolean) {
       this.settings.webSearchEnabled = enabled;
       localStorage.setItem("WeKnora_settings", JSON.stringify(this.settings));
@@ -314,26 +314,26 @@ export const useSettingsStore = defineStore("settings", {
       return this.settings.selectedFiles || [];
     },
     
-    // 选择智能体
+    // Select agent
     selectAgent(agentId: string) {
       this.settings.selectedAgentId = agentId;
-      // 根据智能体类型自动切换 Agent 模式
+      // Automatically switch Agent mode based on agent type
       if (agentId === BUILTIN_QUICK_ANSWER_ID) {
         this.settings.isAgentEnabled = false;
       } else if (agentId === BUILTIN_SMART_REASONING_ID) {
         this.settings.isAgentEnabled = true;
       }
-      // 自定义智能体需要根据其配置来决定
+      // Custom agents need to be determined based on their configuration
       
-      // 切换智能体时重置知识库和文件选择状态
-      // 因为不同智能体关联的知识库不同，需要清空用户之前的选择
+      // Reset knowledge base and file selection state when switching agents
+      // Because different agents are associated with different knowledge bases, need to clear user's previous selection
       this.settings.selectedKnowledgeBases = [];
       this.settings.selectedFiles = [];
       
       localStorage.setItem("WeKnora_settings", JSON.stringify(this.settings));
     },
     
-    // 获取选中的智能体ID
+    // Get selected agent ID
     getSelectedAgentId(): string {
       return this.settings.selectedAgentId || BUILTIN_QUICK_ANSWER_ID;
     },
