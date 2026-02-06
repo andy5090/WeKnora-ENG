@@ -1037,7 +1037,10 @@ export default {
     },
     messages: {
       deleted: 'Knowledge base deleted',
-      deleteFailed: 'Failed to delete knowledge base'
+      deleteFailed: 'Failed to delete knowledge base',
+      file: 'File',
+      knowledgeBase: 'Knowledge Base',
+      noResult: 'No results'
     },
     features: {
       knowledgeGraph: 'Knowledge Graph Enabled',
@@ -1126,9 +1129,13 @@ export default {
         separate: 'Separate'
       },
       standardQuestion: 'Primary Question',
+      standardQuestionDesc: 'Set the standard phrasing of the question. This is the most common way users ask this question.',
       answers: 'Answers',
+      answersDesc: 'Provide complete and accurate answers. You can add multiple answers to cover different scenarios.',
       similarQuestions: 'Similar Questions',
+      similarQuestionsDesc: 'Add questions with the same meaning but different wording to help the system better match user queries.',
       negativeQuestions: 'Negative Examples',
+      negativeQuestionsDesc: 'Add questions that should not match this answer to exclude incorrect matches.',
       categoryLabel: 'FAQ Category',
       categoryButton: 'Switch Category',
       editorCreate: 'Create FAQ Entry',
@@ -1554,6 +1561,7 @@ export default {
     }
   },
   error: {
+    invalidImageLink: 'Invalid image link',
     network: 'Network error',
     server: 'Server error',
     notFound: 'Not found',
@@ -1794,9 +1802,11 @@ export default {
       notReady: 'Not Ready',
       hint: 'Once configuration is complete, the status will change to "Ready". You can then enable Agent mode in the chat.',
       missingThinkingModel: 'Thinking model',
+      missingSummaryModel: 'Chat Model (Summary Model)',
       missingRerankModel: 'Rerank model',
       missingAllowedTools: 'Allowed tools',
       pleaseConfigure: 'Please configure {items}',
+      goToConfig: 'Go to configure chat model',
       goConfigureModels: 'Configure models →'
     },
     maxIterations: {
@@ -2178,6 +2188,7 @@ export default {
     }
   },
   promptTemplate: {
+    noTemplates: 'No templates available',
     selectTemplate: 'Select Template',
     useTemplate: 'Use Template',
     withKnowledgeBase: 'KB',

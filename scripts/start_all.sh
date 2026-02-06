@@ -336,8 +336,9 @@ start_docker() {
     log_info "Starting core service containers..."
 	# Start uniformly through detected Compose command
 	if [ "$NO_PULL" = true ]; then
-		# Don't pull images, use local images
-		log_info "Skipping image pull, using local images..."
+		# Don't pull images, build from local source
+		log_info "Building from local source (no-cache for frontend)..."
+		PLATFORM=$PLATFORM "$DOCKER_COMPOSE_BIN" $DOCKER_COMPOSE_SUBCMD build --no-cache frontend
 		PLATFORM=$PLATFORM "$DOCKER_COMPOSE_BIN" $DOCKER_COMPOSE_SUBCMD up --build -d
 	else
 		# Pull latest images

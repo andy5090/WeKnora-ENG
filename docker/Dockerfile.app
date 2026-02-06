@@ -30,20 +30,21 @@ RUN --mount=type=cache,target=/go/pkg/mod go mod download
 COPY . .
 
 # Get version and commit info for build injection
+# These can be passed as build args, or auto-detected from git/go
 ARG VERSION_ARG
 ARG COMMIT_ID_ARG
 ARG BUILD_TIME_ARG
 ARG GO_VERSION_ARG
 
-# Set build-time variables
-ENV VERSION=${VERSION_ARG}
-ENV COMMIT_ID=${COMMIT_ID_ARG}
-ENV BUILD_TIME=${BUILD_TIME_ARG}
-ENV GO_VERSION=${GO_VERSION_ARG}
+# Auto-detect version info if not provided via build args
+RUN echo "VERSION=${VERSION_ARG:-$(git describe --tags --abbrev=0 2>/dev/null || echo 'unknown')}" >> /tmp/build_env && \
+    echo "COMMIT_ID=${COMMIT_ID_ARG:-$(git rev-parse --short HEAD 2>/dev/null || echo 'unknown')}" >> /tmp/build_env && \
+    echo "BUILD_TIME=${BUILD_TIME_ARG:-$(date -u '+%Y-%m-%d %H:%M:%S UTC')}" >> /tmp/build_env && \
+    echo "GO_VERSION=${GO_VERSION_ARG:-$(go version 2>/dev/null || echo 'unknown')}" >> /tmp/build_env
 
 # Build the application with version info
 RUN --mount=type=cache,target=/go/pkg/mod make download_spatial
-RUN --mount=type=cache,target=/go/pkg/mod make build-prod
+RUN --mount=type=cache,target=/go/pkg/mod export $(cat /tmp/build_env | xargs) && make build-prod
 RUN --mount=type=cache,target=/go/pkg/mod cp -r /go/pkg/mod/github.com/yanyiwu/ /app/yanyiwu/
 
 # Final stage
@@ -56,12 +57,17 @@ ARG APK_MIRROR_ARG
 # Create a non-root user first
 RUN useradd -m -s /bin/bash appuser
 
+# Install ca-certificates first from default sources so HTTPS mirrors work
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
 RUN if [ -n "$APK_MIRROR_ARG" ]; then \
         sed -i "s@deb.debian.org@${APK_MIRROR_ARG}@g" /etc/apt/sources.list.d/debian.sources; \
     fi && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-        build-essential postgresql-client default-mysql-client ca-certificates tzdata sed curl bash vim wget \
+        build-essential postgresql-client default-mysql-client tzdata sed curl bash vim wget \
         python3 python3-pip python3-dev libffi-dev libssl-dev \
         nodejs npm && \
     python3 -m pip install --break-system-packages --upgrade pip setuptools wheel && \

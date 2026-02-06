@@ -715,6 +715,7 @@ export default {
     save: "저장",
     delete: "삭제",
     edit: "편집",
+    copy: "복사",
     default: "기본값",
     create: "생성",
     search: "검색",
@@ -1750,7 +1751,13 @@ export default {
         minio: {
           bucketLabel: "버킷 이름",
           bucketDescription: "MinIO 스토리지 버킷 이름 (필수)",
-          bucketPlaceholder: "버킷 이름을 입력해주세요 (필수)",
+          bucketPlaceholder: "버킷 이름을 선택하거나 입력해주세요",
+          bucketHint: "기존의 공개 읽기 권한 Bucket을 선택하거나 새 이름을 입력하면 자동으로 생성됩니다",
+          policyLabels: {
+            public: "공개 읽기",
+            private: "비공개",
+            custom: "사용자 정의",
+          },
           useSslLabel: "SSL 사용",
           useSslDescription: "SSL 연결 사용 여부",
           pathPrefixLabel: "경로 접두사",
@@ -1788,18 +1795,26 @@ export default {
     placeholderWebOnly: "질문을 입력하면 웹 검색을 결합하여 답변합니다",
     placeholderKbAndWeb:
       "질문을 입력하면 지식베이스와 웹 검색을 기반으로 답변합니다",
+    placeholderAgent: "{name}에게 질문하기",
     agentMode: "Agent 모드",
     normalMode: "일반 모드",
     normalModeDesc: "지식베이스 기반 RAG Q&A",
     agentModeDesc: "ReAct 추론 프레임워크, 다단계 사고",
     agentNotReadyTooltip:
       "Agent가 준비되지 않았습니다. 먼저 설정에서 구성을 완료해주세요",
-    agentNotReadyDetail:
-      "Agent가 준비되지 않았습니다. 다음 항목을 설정해야 합니다: {reasons}",
     agentMissingAllowedTools: "허용된 도구",
     agentMissingSummaryModel: "대화 모델 (Summary Model)",
     agentMissingRerankModel: "재정렬 모델 (Rerank Model)",
     goToSettings: "설정으로 이동 →",
+    customAgentNotReadyTooltip: "에이전트가 준비되지 않았습니다. 먼저 설정을 완료해주세요",
+    customAgentNotReadyDetail: "에이전트가 준비되지 않았습니다. 다음 항목을 설정해야 합니다: {reasons}",
+    customAgentMissingSummaryModel: "대화 모델 (Summary Model)",
+    customAgentMissingRerankModel: "재정렬 모델 (Rerank Model)",
+    goToAgentEditor: "설정하러 가기 →",
+    agentNotReadyDetail: "에이전트「{agentName}」가 준비되지 않았습니다. 다음 항목을 설정해야 합니다: {reasons}",
+    builtinAgentNotReadyDetail: "내장 에이전트「{agentName}」가 준비되지 않았습니다. 다음 항목을 설정해야 합니다: {reasons}",
+    builtinAgentSettingName: "지능형 추론",
+    builtinNormalSettingName: "빠른 질의응답",
     webSearch: {
       toggleOn: "웹 검색 켜기",
       toggleOff: "웹 검색 끄기",
@@ -1820,6 +1835,7 @@ export default {
       replying: "응답 중입니다. 잠시 후 다시 시도해주세요!",
       agentSwitchedOn: "Agent 모드로 전환되었습니다",
       agentSwitchedOff: "일반 모드로 전환되었습니다",
+      agentSelected: "에이전트「{name}」가 선택되었습니다",
       agentEnabled: "Agent 모드가 활성화되었습니다",
       agentDisabled: "Agent 모드가 비활성화되었습니다",
       agentNotReadyDetail:
@@ -1834,6 +1850,14 @@ export default {
       stopSuccess: "생성이 중지되었습니다",
       stopFailed: "중지 실패, 다시 시도해주세요",
     },
+    webSearchDisabledByAgent: "현재 에이전트가 웹 검색을 비활성화했습니다",
+    webSearchForcedByAgent: "현재 에이전트가 웹 검색을 활성화했으므로 끌 수 없습니다",
+    kbLockedByAgent: "현재 에이전트가 지식베이스 설정을 잠갔습니다",
+    kbDisabledByAgent: "현재 에이전트가 지식베이스 기능을 비활성화했습니다",
+    cannotRemoveAgentKb: "에이전트가 설정한 지식베이스는 제거할 수 없습니다",
+    agentConfiguredKb: "에이전트가 설정함, 삭제 불가",
+    modelLockedByAgent: "현재 에이전트가 모델 설정을 잠갔습니다",
+    goToAgentSettings: "에이전트 설정으로 이동",
   },
   agentSettings: {
     title: "Agent 설정",
@@ -1897,9 +1921,7 @@ export default {
       placeholder:
         "시스템 Prompt를 입력하거나 비워두면 기본 Prompt가 사용됩니다...",
       tabHint:
-        "웹 검색 활성화 여부에 따라 시스템 Prompt를 개별적으로 설정합니다.",
-      tabWebOn: "웹 검색 활성화됨",
-      tabWebOff: "웹 검색 비활성화됨",
+        "통합 시스템 프롬프트입니다. {'{{'}web_search_status{'}}'} 플레이스홀더를 사용하여 웹 검색 동작을 동적으로 제어합니다",
     },
     reset: {
       header: "기본 Prompt 복원",
@@ -2255,6 +2277,95 @@ export default {
       updated: "MCP 서비스가 업데이트되었습니다",
       createFailed: "MCP 서비스 생성 실패",
       updateFailed: "MCP 서비스 업데이트 실패",
+    },
+  },
+  promptTemplate: {
+    noTemplates: "템플릿 없음",
+    selectTemplate: "템플릿 선택",
+    useTemplate: "템플릿 사용",
+    withKnowledgeBase: "지식베이스",
+    withWebSearch: "웹 검색",
+    systemPrompt: {
+      defaultKB: {
+        name: "지식베이스 Q&A 어시스턴트",
+        desc: "기본 지식베이스 Q&A 템플릿, 대부분의 시나리오에 적합",
+      },
+      expert: {
+        name: "도메인 전문가 어시스턴트",
+        desc: "전문적이고 심층적인 답변 스타일, 기술 또는 전문 분야에 적합",
+      },
+      customerService: {
+        name: "고객 서비스 어시스턴트",
+        desc: "친절하고 열정적인 서비스 스타일, 고객 서비스 시나리오에 적합",
+      },
+      techSupport: {
+        name: "기술 지원",
+        desc: "코드 예시를 포함한 전문적인 기술 문제 해결",
+      },
+      pureChat: {
+        name: "일반 대화",
+        desc: "지식베이스에 의존하지 않는 일반 대화 어시스턴트",
+      },
+      webSearch: {
+        name: "웹 검색 어시스턴트",
+        desc: "웹 검색을 결합하여 최신 정보 제공",
+      },
+    },
+    contextTemplate: {
+      default: {
+        name: "표준 템플릿",
+        desc: "기본 컨텍스트 템플릿, 참조 자료와 질문을 명확하게 표시",
+      },
+      detailed: {
+        name: "상세 템플릿",
+        desc: "상세한 설명과 답변 요구사항을 포함하는 완전한 템플릿",
+      },
+      simple: {
+        name: "간결 템플릿",
+        desc: "간단한 Q&A 시나리오에 적합한 간소화된 템플릿 형식",
+      },
+      qa: {
+        name: "Q&A 템플릿",
+        desc: "Q&A 시나리오에 최적화된 템플릿",
+      },
+    },
+    rewriteSystem: {
+      default: {
+        name: "표준 재작성",
+        desc: "대명사 해소, 생략 보완의 표준 재작성 규칙",
+      },
+      strict: {
+        name: "엄격한 재작성",
+        desc: "더 엄격한 재작성 요구사항, 질문의 완전한 독립성 보장",
+      },
+    },
+    rewriteUser: {
+      default: {
+        name: "표준 형식",
+        desc: "대화 히스토리와 현재 질문을 포함하는 표준 형식",
+      },
+      detailed: {
+        name: "상세 형식",
+        desc: "작업 설명을 포함하는 상세 형식",
+      },
+    },
+    fallback: {
+      default: {
+        name: "표준 폴백",
+        desc: "친절하게 답변 불가를 알리고 제안 제공",
+      },
+      polite: {
+        name: "정중한 폴백",
+        desc: "더 정중하고 상세한 답변 불가 안내",
+      },
+      brief: {
+        name: "간결한 폴백",
+        desc: "간단한 답변 불가 안내",
+      },
+      model: {
+        name: "모델 폴백 프롬프트",
+        desc: "모델이 일반 지식을 기반으로 답변하도록 유도하는 프롬프트",
+      },
     },
   },
 };

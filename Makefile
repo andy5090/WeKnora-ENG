@@ -1,4 +1,4 @@
-.PHONY: help build run test clean docker-build-app docker-build-docreader docker-build-frontend docker-build-all docker-run migrate-up migrate-down docker-restart docker-stop start-all stop-all start-ollama stop-ollama build-images build-images-app build-images-docreader build-images-frontend clean-images check-env list-containers pull-images show-platform dev-start dev-stop dev-restart dev-logs dev-status dev-app dev-frontend docs install-swagger
+.PHONY: help build run test clean docker-build-app docker-build-docreader docker-build-frontend docker-build-all docker-run migrate-up migrate-down docker-restart docker-stop start-all start-all-local start-all-full start-all-local-full stop-all start-ollama stop-ollama build-images build-images-app build-images-docreader build-images-frontend clean-images check-env list-containers pull-images show-platform dev-start dev-stop dev-restart dev-logs dev-status dev-app dev-frontend docs install-swagger
 
 # Show help
 help:
@@ -20,9 +20,12 @@ help:
 	@echo "  docker-restart          Restart Docker containers"
 	@echo ""
 	@echo "Service Management:"
-	@echo "  start-all         Start all services"
-	@echo "  stop-all          Stop all services"
-	@echo "  start-ollama      Start Ollama service only"
+	@echo "  start-all              Start all services (pulls from registry)"
+	@echo "  start-all-local        Start all services (build from local source)"
+	@echo "  start-all-full         Start all services with full profile (includes minio, jaeger, neo4j, qdrant)"
+	@echo "  start-all-local-full   Start all services with full profile (build from local source)"
+	@echo "  stop-all               Stop all services"
+	@echo "  start-ollama           Start Ollama service only"
 	@echo ""
 	@echo "Image Building:"
 	@echo "  build-images      Build all images from source"
@@ -123,6 +126,18 @@ docker-run:
 # Start all services using new script
 start-all:
 	./scripts/start_all.sh
+
+# Start all services with local build (no pull from registry)
+start-all-local:
+	./scripts/start_all.sh --no-pull
+
+# Start all services with full profile (includes minio, jaeger, neo4j, qdrant)
+start-all-full:
+	COMPOSE_PROFILES=full ./scripts/start_all.sh
+
+# Start all services with full profile and local build
+start-all-local-full:
+	COMPOSE_PROFILES=full ./scripts/start_all.sh --no-pull
 
 # Start only Ollama service using new script
 start-ollama:
